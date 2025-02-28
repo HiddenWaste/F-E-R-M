@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freesound Euclidean Rhythm Machine</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <script src="https://unpkg.com/total-serialism/build/ts.es5.min.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Freesound Euclidean Rhythm Machine</h1>
+        <p>Create rhythmic patterns with sounds from Freesound.org</p>
+    </div>
+    
+    <div id="error"></div>
+    <div id="loading">Loading sounds...</div>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>Sound Search</h2>
+            <div>
+                <label for="sound-search">Search for sounds:</label>
+                <input type="text" id="sound-search" placeholder="E.g., kick, piano, bell, guitar...">
+                
+                <label for="duration-slider">Max Duration (seconds):</label>
+                <input type="range" id="duration-slider" min="0.5" max="10" step="0.5" value="3">
+                <div><span id="duration-value">3</span> seconds</div>
+                
+                <button id="search-sounds-button">Search Sounds</button>
+            </div>
+            
+            <div id="sound-results"></div>
+        </div>
+        
+        <div class="panel" id="euclidean-controls">
+            <h2>Rhythm Patterns</h2>
+            
+            <div class="selected-sounds-info">
+                <div>Selected Sounds: <span id="selected-sounds-count" class="selected-count">0</span></div>
+                <button id="clear-sounds-button">Clear All</button>
+            </div>
+            
+            <div>
+                <label for="steps-slider">Steps in Sequence:</label>
+                <input type="range" id="steps-slider" min="4" max="32" value="16">
+                <div><span id="steps-value">16</span> steps</div>
+                
+                <h3>Sound Patterns:</h3>
+                <div id="patterns-container">
+                    <p>Add sounds to create patterns</p>
+                </div>
+                
+                <h3>Playback:</h3>
+                <div>Status: <span id="transport-status">Stopped</span></div>
+                
+                <div class="playback-controls">
+                    <div class="playback-buttons">
+                        <button id="start-rhythm">▶ Start</button>
+                        <button id="stop-rhythm">■ Stop</button>
+                        <button id="record-button">Record</button>
+                    </div>
+                    
+                    <div class="bpm-control">
+                        <label for="bpm-slider">BPM:</label>
+                        <input type="range" id="bpm-slider" min="60" max="180" step="1" value="120" style="width: 120px;">
+                        <span id="bpm-value">120</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Format Selection Dialog -->
+    <div id="format-selection-dialog" class="format-dialog">
+        <div class="format-dialog-content">
+            <h3>Save Recording</h3>
+            <p>Choose a format to download your recording:</p>
+            <div class="format-buttons">
+                <button id="download-webm" class="format-btn">WebM</button>
+                <button id="download-wav" class="format-btn">WAV</button>
+                <button id="download-mp3" class="format-btn">MP3</button>
+            </div>
+            <button id="cancel-download" class="cancel-btn">Cancel</button>
+            <input type="hidden" id="recording-blob">
+        </div>
+    </div>
+    
+    <script src="freesound.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
