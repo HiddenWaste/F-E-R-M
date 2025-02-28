@@ -219,10 +219,57 @@ function findSimilarSounds(soundId) {
   freesound.getSound(
     soundId, 
     sound => {
+      // First get similar sounds
       sound.getSimilar(
-        handleSearchResults,
+        similarSounds => {
+          console.log("Similar sounds results:", similarSounds);
+          
+          if (!similarSounds.results || similarSounds.results.length === 0) {
+            document.getElementById("loading").style.display = "none";
+            showMessage("No similar sounds found", "error");
+            return;
+          }
+          
+          // Fetch complete sound details for each similar sound
+          const soundPromises = [];
+          
+          for (let i = 0; i < Math.min(similarSounds.results.length, 12); i++) {
+            const similarSoundId = similarSounds.results[i].id;
+            soundPromises.push(new Promise((resolve, reject) => {
+              freesound.getSound(similarSoundId, resolve, reject);
+            }));
+          }
+          
+          // When all sounds are fetched, display them
+          Promise.all(soundPromises.map(p => p.catch(e => null))) // Handle rejected promises
+            .then(fetchedSounds => {
+              // Filter out failed fetches
+              const validSounds = fetchedSounds.filter(s => s !== null);
+              
+              if (validSounds.length === 0) {
+                document.getElementById("loading").style.display = "none";
+                showMessage("Could not load similar sounds", "error");
+                return;
+              }
+              
+              // Create a SoundCollection-like object
+              const soundCollection = {
+                results: validSounds
+              };
+              
+              handleSearchResults(soundCollection);
+            })
+            .catch(error => {
+              console.error("Error fetching similar sounds:", error);
+              document.getElementById("loading").style.display = "none";
+              showMessage("Error loading similar sounds", "error");
+            });
+        },
         handleSearchError,
-        { page_size: 12 }
+        { 
+          page_size: 12,
+          fields: "id,name" // We just need IDs here, we'll fetch full details
+        }
       );
     }, 
     handleSearchError
@@ -239,16 +286,27 @@ function handleSearchResults(sounds) {
     return;
   }
   
+  // Debug: Log the first result structure to console
+  if (sounds.results.length > 0) {
+    console.log("Sample sound result structure:", sounds.results[0]);
+  }
+  
   document.getElementById("euclidean-controls").style.display = "block";
   const resultsContainer = document.getElementById("sound-results");
   resultsContainer.innerHTML = "<h3>Available Sounds:</h3>";
   
   sounds.results.forEach(sound => {
+    // Make sure the sound has the minimum required fields
+    if (!sound.id || !sound.name) {
+      console.error("Incomplete sound data:", sound);
+      return; // Skip this sound
+    }
+    
     const soundCard = document.createElement("div");
     soundCard.className = "sound-info";
     soundCard.innerHTML = `
       <strong>${sound.name}</strong>
-      <span class="sound-author">by ${sound.username}</span>
+      <span class="sound-author">by ${sound.username || "Unknown"}</span>
       <div class="sound-actions">
         <button id="play-${sound.id}" class="play-btn loading" disabled>▶</button>
         <button id="stop-${sound.id}" class="stop-btn" disabled>■</button>
@@ -258,15 +316,35 @@ function handleSearchResults(sounds) {
     `;
     resultsContainer.appendChild(soundCard);
     
-    // Start loading sound
-    if (sound.previews && sound.previews["preview-hq-mp3"]) {
-      loadSound(sound.previews["preview-hq-mp3"], sound.id);
-    } else if (sound.previews && Object.values(sound.previews).length > 0) {
-      // Fall back to any available preview if the HQ one isn't available
-      loadSound(Object.values(sound.previews)[0], sound.id);
-    } else {
-      console.error("No preview available for sound:", sound.id);
+    // Check if previews exist and log if not
+    if (!sound.previews || Object.keys(sound.previews).length === 0) {
+      console.error(`Sound ${sound.id} (${sound.name}) has no previews!`, sound);
       showMessage(`No preview available for "${sound.name}"`, "error");
+      return;
+    }
+    
+    // Start loading sound - check for various preview formats
+    let previewUrl = null;
+    if (sound.previews["preview-hq-mp3"]) {
+      previewUrl = sound.previews["preview-hq-mp3"];
+    } else if (sound.previews["preview-lq-mp3"]) {
+      previewUrl = sound.previews["preview-lq-mp3"];
+    } else if (sound.previews["preview-hq-ogg"]) {
+      previewUrl = sound.previews["preview-hq-ogg"];
+    } else if (typeof sound.previews === 'object') {
+      // Fall back to any available preview
+      const urls = Object.values(sound.previews);
+      if (urls.length > 0) {
+        previewUrl = urls[0];
+      }
+    }
+    
+    if (previewUrl) {
+      console.log(`Loading sound ${sound.id} from URL: ${previewUrl}`);
+      loadSound(previewUrl, sound.id);
+    } else {
+      console.error(`No usable preview URL for sound ${sound.id}`, sound);
+      showMessage(`Could not find preview for "${sound.name}"`, "error");
     }
     
     // Add event listeners
