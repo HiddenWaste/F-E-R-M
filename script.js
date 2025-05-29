@@ -624,8 +624,16 @@ function downloadRecording(format) {
   const blobUrl = document.getElementById("recording-blob").value;
   if (!blobUrl) return;
   
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const filename = `euclidean-rhythm-${timestamp}.${format}`;
+  // Get custom filename from input, fallback to default with timestamp
+  const customFilename = document.getElementById("filename-input").value.trim();
+  let filename;
+  
+  if (customFilename) {
+    filename = `${customFilename}.${format}`;
+  } else {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    filename = `euclidean-rhythm-${timestamp}.${format}`;
+  }
   
   // For WebM (native format), download directly
   if (format === 'webm') {
@@ -692,9 +700,6 @@ function downloadRecording(format) {
   
   // Hide the dialog
   document.getElementById("format-selection-dialog").style.display = "none";
-}// Update filter value display
-function updateFilterValue(slider, valueDisplay, unit) {
-  valueDisplay.textContent = `${slider.value}${unit}`;
 }
 
 // Update active filters object

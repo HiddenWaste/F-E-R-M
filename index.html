@@ -136,6 +136,12 @@
                 
                 <h3>Playback:</h3>
                 <div>Status: <span id="transport-status">Stopped</span></div>
+
+                <div class="bpm-control">
+                        <label for="bpm-slider">BPM:</label>
+                        <input type="range" id="bpm-slider" min="60" max="180" step="1" value="120" style="width: 120px;">
+                        <span id="bpm-value">120</span>
+                    </div>
                 
                 <div class="playback-controls">
                     <div class="playback-buttons">
@@ -143,12 +149,15 @@
                         <button id="stop-rhythm">■ Stop</button>
                         <button id="record-button">Record</button>
                     </div>
+
+                    <!-- Custom Filename Input -->
+                <div class="filename-control">
+                    <label for="filename-input">Recording Filename:</label>
+                    <input type="text" id="filename-input" placeholder="my-euclidean-rhythm" value="euclidean-rhythm">
+                    <small>File extension will be added automatically</small>
+                </div>
                     
-                    <div class="bpm-control">
-                        <label for="bpm-slider">BPM:</label>
-                        <input type="range" id="bpm-slider" min="60" max="180" step="1" value="120" style="width: 120px;">
-                        <span id="bpm-value">120</span>
-                    </div>
+                    
                 </div>
             </div>
         </div>
