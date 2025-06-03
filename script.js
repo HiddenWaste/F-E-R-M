@@ -165,8 +165,8 @@ function updatePatternDisplay() {
     volumeControl.innerHTML = `
       <label class="volume-label">Vol:</label>
       <input type="range" class="volume-slider" data-index="${index}" 
-             min="-40" max="0" step="1" value="${sound.volume || -3}">
-      <span class="volume-value">${sound.volume || -3}dB</span>
+             min="-40" max="0" step="1" value="${sound.volume || -12}">
+      <span class="volume-value">${sound.volume || -12}dB</span>
     `;
     
     row.appendChild(controls);
@@ -224,12 +224,12 @@ function addSoundToRhythm(sound) {
   // Create a random fill value (number of hits)
   const fills = Math.floor(Math.random() * (steps / 2)) + 1;
   
-  // Add to selected sounds with default volume
+  // Add to selected sounds with lower default volume
   selectedSounds.push({
     id: sound.id,
     name: sound.name,
     fills: fills,
-    volume: -3, // -3dB is approximately 0.7 linear volume
+    volume: -12, // Changed from -3 to -12dB (lower default volume)
     pattern: generatePattern(steps, fills)
   });
   
@@ -343,8 +343,8 @@ function loadSound(url, id) {
     }
   }).toDestination();
   
-  // Set default volume to 0.7 (slightly lower than 1 to prevent peaking)
-  player.volume.value = -3; // -3dB is approximately 0.7 linear volume
+  // Set lower default volume
+  player.volume.value = -12; // Changed from -3 to -12dB
   
   players.set(id, player);
 }
@@ -951,4 +951,9 @@ function setupDualSlider(filterName, unit) {
     updateFilterValue(maxSlider, maxValue, unit);
     updateActiveFilters(filterName, minSlider.value, maxSlider.value);
   });
+}
+
+// Helper function to update filter value display
+function updateFilterValue(slider, valueElement, unit) {
+  valueElement.textContent = `${slider.value}${unit}`;
 }
