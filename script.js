@@ -194,6 +194,13 @@ function updatePatternDisplay() {
       return `<span class="${className}">${isActive ? '●' : '○'}</span>`;
     }).join("");
     
+    // Add FX section
+    const fxSection = document.createElement("div");
+    fxSection.className = "fx-section";
+    const effectChain = effectChains.get(sound.id);
+    const isExpanded = fxPanelStates.get(sound.id) || false;
+    fxSection.innerHTML = generateFXUI(index, effectChain, isExpanded);
+    
     // Add volume slider
     const volumeControl = document.createElement("div");
     volumeControl.className = "volume-control";
@@ -206,6 +213,7 @@ function updatePatternDisplay() {
     
     row.appendChild(controls);
     row.appendChild(pattern);
+    row.appendChild(fxSection);
     row.appendChild(volumeControl);
     container.appendChild(row);
   });
@@ -258,6 +266,42 @@ function updatePatternDisplay() {
       removeSound(parseInt(btn.getAttribute('data-index')));
     });
   });
+}
+
+// FX Management Functions
+function toggleFXPanel(soundIndex) {
+  if (soundIndex >= 0 && soundIndex < selectedSounds.length) {
+    const sound = selectedSounds[soundIndex];
+    const currentState = fxPanelStates.get(sound.id) || false;
+    fxPanelStates.set(sound.id, !currentState);
+    updatePatternDisplay();
+  }
+}
+
+function addEffectToSound(soundIndex, effectType) {
+  if (soundIndex >= 0 && soundIndex < selectedSounds.length) {
+    const sound = selectedSounds[soundIndex];
+    const effectChain = effectChains.get(sound.id);
+    
+    if (effectChain && effectChain.addEffect(effectType)) {
+      updatePatternDisplay();
+      showMessage(`Added ${AVAILABLE_EFFECTS[effectType].name} to ${sound.name}`, "info");
+    } else {
+      showMessage("Could not add effect (max 3 per track)", "error");
+    }
+  }
+}
+
+function removeEffectFromSound(soundIndex, fxIndex) {
+  if (soundIndex >= 0 && soundIndex < selectedSounds.length) {
+    const sound = selectedSounds[soundIndex];
+    const effectChain = effectChains.get(sound.id);
+    
+    if (effectChain && effectChain.removeEffect(fxIndex)) {
+      updatePatternDisplay();
+      showMessage(`Removed effect from ${sound.name}`, "info");
+    }
+  }
 }// Add a sound to the rhythm
 function addSoundToRhythm(sound) {
   // Check if already added
@@ -403,12 +447,18 @@ function loadSound(url, id) {
         playButton.title = "Failed to load sound";
       }
     }
-  }).toDestination();
+  });
   
   // Set lower default volume
   player.volume.value = -12; // Changed from -3 to -12dB
   
+  // Create effect chain for this sound
+  const effectChain = new EffectChain();
+  effectChain.connectToDestination();
+  effectChain.connectPlayer(player);
+  
   players.set(id, player);
+  effectChains.set(id, effectChain);
 }
 
 // Play a sound preview
@@ -855,6 +905,8 @@ function buildAudioFeatureFilter() {
   return filterString.trim();
 }// Initialize core variables
 let players = new Map(); // Stores Tone.js players for each sound
+let effectChains = new Map(); // Stores effect chains for each sound
+let fxPanelStates = new Map(); // Tracks which FX panels are expanded
 let selectedSounds = []; // Array to store selected sounds and their patterns
 let sequence = null; // Tone.js sequence that plays the rhythm pattern
 let steps = 16; // Number of steps in the rhythm pattern

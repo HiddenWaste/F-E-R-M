@@ -671,6 +671,108 @@ label {
   margin-top: 5px;
 }
 
+/* FX System Styles */
+.fx-section {
+  margin: 10px 0;
+}
+
+.fx-toggle-btn {
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 0.85em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+}
+
+.fx-toggle-btn:hover {
+  background-color: #8347d6;
+}
+
+.fx-toggle-icon {
+  font-size: 0.8em;
+}
+
+.fx-panel {
+  background-color: var(--hover-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 10px;
+  margin-top: 8px;
+}
+
+.fx-controls {
+  margin-bottom: 10px;
+}
+
+.fx-add-select {
+  background-color: var(--panel-background);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 0.85em;
+  cursor: pointer;
+  width: 100%;
+}
+
+.fx-add-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
+}
+
+.fx-chain {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fx-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background-color: var(--panel-background);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.fx-item.fx-empty {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.fx-name {
+  font-size: 0.85em;
+  color: var(--text-color);
+}
+
+.fx-remove-btn {
+  background-color: var(--danger-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+}
+
+.fx-remove-btn:hover {
+  background-color: #e53e3e;
+}
+
 .step.inactive-subdivision {
   color: #888;
 }
