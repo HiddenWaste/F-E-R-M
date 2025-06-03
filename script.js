@@ -10,7 +10,8 @@ function updateSequence() {
       selectedSounds.forEach(sound => {
         if (sound.pattern && 
             sound.pattern[step] === 1 && 
-            players.has(sound.id)) {
+            players.has(sound.id) &&
+            shouldPlayOnStep(step, sound.subdivision)) {
           const player = players.get(sound.id);
           
           // Reset player if needed
@@ -28,11 +29,31 @@ function updateSequence() {
       });
     },
     [...Array(steps).keys()], // Creates array [0, 1, 2, ..., steps-1]
-    "16n"
+    "16n" // Keep base timing at 16th notes, we'll filter in shouldPlayOnStep
   );
   
   if (isPlaying) {
     sequence.start(0);
+  }
+}
+
+// Check if a sound should play on a given step based on its subdivision
+function shouldPlayOnStep(step, subdivision) {
+  switch (subdivision) {
+    case "16n":
+      return true; // Can play on any step (current behavior)
+    case "8n":
+      return step % 2 === 0; // Only on even steps (0, 2, 4, 6, 8, 10, 12, 14)
+    case "8t":
+      // Triplet feel - plays on steps 0, 2.67, 5.33, 8, 10.67, 13.33
+      // Approximated to steps 0, 3, 5, 8, 11, 13
+      return [0, 3, 5, 8, 11, 13].includes(step);
+    case "4n":
+      return step % 4 === 0; // Only on quarter note steps (0, 4, 8, 12)
+    case "32n":
+      return true; // 32nd notes would need double-speed sequence, keep simple for now
+    default:
+      return true;
   }
 }
 
@@ -147,17 +168,31 @@ function updatePatternDisplay() {
         <input type="range" class="fills-slider" data-index="${index}" 
                min="1" max="${steps}" value="${sound.fills}">
         <span class="fills-value">${sound.fills}</span>
+        <select class="subdivision-select" data-index="${index}">
+          <option value="16n" ${sound.subdivision === '16n' ? 'selected' : ''}>16th</option>
+          <option value="8n" ${sound.subdivision === '8n' ? 'selected' : ''}>8th</option>
+          <option value="8t" ${sound.subdivision === '8t' ? 'selected' : ''}>Triplets</option>
+          <option value="4n" ${sound.subdivision === '4n' ? 'selected' : ''}>Quarter</option>
+        </select>
         <button class="remove-btn" data-index="${index}">×</button>
       </div>
     `;
     
     const pattern = document.createElement("div");
     pattern.className = "pattern-display";
-    pattern.innerHTML = sound.pattern.map(value => 
-      value === 1 
-        ? '<span class="step active">●</span>' 
-        : '<span class="step inactive">○</span>'
-    ).join("");
+    pattern.innerHTML = sound.pattern.map((value, stepIndex) => {
+      const isActive = value === 1;
+      const willPlay = isActive && shouldPlayOnStep(stepIndex, sound.subdivision);
+      let className = "step";
+      
+      if (isActive) {
+        className += willPlay ? " active" : " inactive-subdivision";
+      } else {
+        className += " inactive";
+      }
+      
+      return `<span class="${className}">${isActive ? '●' : '○'}</span>`;
+    }).join("");
     
     // Add volume slider
     const volumeControl = document.createElement("div");
@@ -192,6 +227,16 @@ function updatePatternDisplay() {
       
       // Update the pattern
       updatePatternFills(index, fills);
+    });
+  });
+  
+  document.querySelectorAll('.subdivision-select').forEach(select => {
+    select.addEventListener('change', () => {
+      const index = parseInt(select.getAttribute('data-index'));
+      const subdivision = select.value;
+      
+      // Update the subdivision
+      updateSubdivision(index, subdivision);
     });
   });
   
@@ -230,6 +275,7 @@ function addSoundToRhythm(sound) {
     name: sound.name,
     fills: fills,
     volume: -12, // Changed from -3 to -12dB (lower default volume)
+    subdivision: "16n", // Default to 16th notes (current behavior)
     pattern: generatePattern(steps, fills)
   });
   
@@ -307,6 +353,22 @@ function updateVolume(index, volumeDb) {
     // Update the actual player volume
     if (players.has(sound.id)) {
       players.get(sound.id).volume.value = volumeDb;
+    }
+  }
+}
+
+// Update subdivision for a specific sound
+function updateSubdivision(index, subdivision) {
+  if (index >= 0 && index < selectedSounds.length) {
+    const sound = selectedSounds[index];
+    sound.subdivision = subdivision;
+    
+    // Update the pattern display to show which steps will actually play
+    updatePatternDisplay();
+    
+    // Update sequence if it's playing
+    if (sequence && isPlaying) {
+      updateSequence();
     }
   }
 }// Load a sound into a Tone.js player

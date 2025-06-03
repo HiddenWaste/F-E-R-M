@@ -671,10 +671,30 @@ label {
   margin-top: 5px;
 }
 
-/* Add some additional helper function for range inputs */
-.fills-value {
+.step.inactive-subdivision {
+  color: #888;
+}
+
+.subdivision-select {
+  background-color: var(--hover-color);
   color: var(--text-color);
-  font-weight: 500;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.85em;
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.subdivision-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
+}
+
+.subdivision-select option {
+  background-color: var(--panel-background);
+  color: var(--text-color);
 }
 
 @media (max-width: 768px) {
